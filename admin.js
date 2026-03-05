@@ -164,25 +164,44 @@ async function loadPlayers(){
 
 // ================= LOAD LEADERBOARD =================
 async function loadLeaderboard(){
-    const div=document.getElementById("leaderboardPanel"); div.innerHTML="";
-    const snapshot = await getDocs(playersRef);
+    const div = document.getElementById("leaderboardPanel"); 
+    div.innerHTML = "";
 
+    const snapshot = await getDocs(playersRef);
     let players = [];
+
     snapshot.forEach(doc=>{
-        const data=doc.data();
-        const kd=(data.deaths?data.kills/data.deaths:0).toFixed(2);
-        const rankingScore=data.points + (data.wins*50) + (kd*20);
-        players.push({...data, id:doc.id, rankingScore, kd});
+        const data = doc.data();
+        const kd = (data.deaths ? data.kills/data.deaths : 0).toFixed(2);
+        const rankingScore = data.points + (data.wins*50) + (kd*20);
+        players.push({...data, id: doc.id, rankingScore, kd});
     });
 
-    players.sort((a,b)=>b.rankingScore-a.rankingScore);
-    const top3 = players.slice(0,3);
+    // Tri par score
+    players.sort((a,b)=> b.rankingScore - a.rankingScore);
 
-    top3.forEach((p,i)=>{
-        div.innerHTML += `<div class="podium-card ${["first","second","third"][i]}">
-            <h4>${p.name}</h4>
-            <p>${p.points} pts | K/D ${p.kd}</p>
-        </div>`;
+    // Affichage complet avec rang
+    players.forEach((p, index)=>{
+        div.innerHTML += `
+        <div class="player-card leaderboard-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <strong>#${index+1} ${p.name}</strong>
+                <span>${p.rankingScore.toFixed(0)} pts</span>
+            </div>
+            <div style="display:flex; gap:10px; font-size:13px; color:#aaa;">
+                <span>Points: ${p.points}</span>
+                <span>Wins: ${p.wins}</span>
+                <span>Kills: ${p.kills}</span>
+                <span>Deaths: ${p.deaths}</span>
+                <span>K/D: ${p.kd}</span>
+            </div>
+            <div style="margin-top:5px;">
+                <button onclick="addPoints('${p.id}',10)">+10 pts</button>
+                <button onclick="addWin('${p.id}')">+1 Win</button>
+                <button onclick="resetStats('${p.id}')">Reset</button>
+            </div>
+        </div>
+        `;
     });
 }
 
