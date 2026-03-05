@@ -4,21 +4,37 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Inscription Joueur</title>
+
 <link rel="stylesheet" href="style.css">
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
+
 <body>
 
-<h2>Créer un compte joueur</h2>
+<header>
+<div class="logo">COD ESPORT LEAGUE</div>
+</header>
 
-<div class="addPlayer">
-    <input type="text" id="username" placeholder="Nom d'utilisateur">
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Mot de passe">
-    <button id="registerBtn">S'inscrire</button>
+<h2>🎮 Créer un compte joueur</h2>
+
+<div class="auth-card">
+
+<div class="auth-avatar">🎮</div>
+
+<input type="text" id="username" placeholder="Nom d'utilisateur">
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Mot de passe">
+
+<button id="registerBtn">Créer un compte</button>
+
+<p class="auth-switch">
+Déjà inscrit ? <a href="login.html">Se connecter</a>
+</p>
+
 </div>
 
-<p>Déjà inscrit ? <a href="login.html">Connectez-vous ici</a></p>
-
 <script type="module" src="register.js"></script>
+
 </body>
 </html>

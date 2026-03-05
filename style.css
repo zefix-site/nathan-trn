@@ -2,7 +2,15 @@
 
 body{
     font-family:'Orbitron',sans-serif;
-    background:radial-gradient(circle at top,#0f0f0f,#000);
+
+    background:
+    linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.95)),
+    url("https://images.wallpapersden.com/image/download/call-of-duty-warzone-hd-gaming_bGxmbmeUmZqaraWkpJRmbmdlrWZlbWU.jpg");
+
+    background-size:cover;
+    background-position:center;
+    background-attachment:fixed;
+
     color:white;
     padding:20px;
 }
@@ -20,7 +28,10 @@ header{
 }
 
 h2{
-    margin:30px 0 20px;
+
+margin:30px 0 20px;
+text-align:center;
+
 }
 
 #podium{
@@ -86,4 +97,376 @@ button{
 button:hover{
     transform: scale(1.05);
     background:#ff3366;
+}
+/* PROFILE PAGE */
+/* ======================= */
+
+.profile-card{
+
+background:#111;
+border:2px solid #00f2ff;
+border-radius:15px;
+padding:30px;
+max-width:500px;
+margin:auto;
+box-shadow:0 0 20px rgba(0,242,255,0.3);
+
+}
+
+.profile-header{
+
+text-align:center;
+margin-bottom:30px;
+
+}
+
+.profile-avatar{
+
+width:100px;
+height:100px;
+border-radius:50%;
+background:#00f2ff;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:40px;
+color:black;
+margin:auto;
+margin-bottom:15px;
+
+}
+
+.profile-name{
+
+font-size:28px;
+color:#00f2ff;
+
+}
+
+.profile-stats{
+
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:20px;
+
+}
+
+.stat-box{
+
+background:#1a1a1a;
+padding:20px;
+border-radius:10px;
+text-align:center;
+border:1px solid #333;
+
+}
+
+.stat-title{
+
+display:block;
+font-size:12px;
+color:#aaa;
+margin-bottom:5px;
+
+}
+
+.stat-value{
+
+font-size:22px;
+font-weight:bold;
+
+}
+
+.kd{
+
+grid-column:span 2;
+
+}
+/* AUTH (LOGIN / REGISTER) */
+/* ======================= */
+
+.auth-card{
+
+background:#111;
+border:2px solid #00f2ff;
+border-radius:15px;
+padding:40px;
+max-width:400px;
+margin:auto;
+margin-top:40px;
+
+display:flex;
+flex-direction:column;
+gap:15px;
+
+box-shadow:0 0 25px rgba(0,242,255,0.3);
+
+}
+
+.auth-avatar{
+
+width:90px;
+height:90px;
+border-radius:50%;
+
+background:#00f2ff;
+color:black;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+font-size:40px;
+margin:auto;
+margin-bottom:10px;
+
+}
+
+.auth-card input{
+
+padding:12px;
+border-radius:6px;
+border:1px solid #00f2ff;
+
+background:#0d0d0d;
+color:white;
+
+font-family:'Orbitron',sans-serif;
+
+}
+
+.auth-card input:focus{
+
+outline:none;
+box-shadow:0 0 10px #00f2ff;
+
+}
+
+.auth-card button{
+
+margin-top:10px;
+padding:12px;
+
+font-weight:bold;
+
+background:#ff003c;
+border:none;
+border-radius:6px;
+
+transition:0.2s;
+
+}
+
+.auth-card button:hover{
+
+background:#ff3366;
+transform:scale(1.05);
+
+}
+
+.auth-switch{
+
+text-align:center;
+margin-top:10px;
+font-size:14px;
+
+}
+
+.auth-switch a{
+
+color:#00f2ff;
+text-decoration:none;
+font-weight:bold;
+
+}
+
+.auth-switch a:hover{
+
+text-decoration:underline;
+
+}
+/* HEADER AMÉLIORÉ */
+/* ======================= */
+
+.header-right{
+
+display:flex;
+align-items:center;
+gap:20px;
+
+}
+
+.season{
+
+font-size:14px;
+color:#aaa;
+
+}
+
+/* ======================= */
+/* HERO */
+/* ======================= */
+
+.hero{
+
+text-align:center;
+padding:60px 20px;
+
+}
+
+.hero h1{
+
+font-size:36px;
+color:#00f2ff;
+margin-bottom:10px;
+
+}
+
+.hero p{
+
+color:#aaa;
+
+}
+
+/* ======================= */
+/* AUTH BUTTONS */
+/* ======================= */
+
+.authButtons{
+
+display:flex;
+gap:10px;
+
+}
+
+.authButtons a{
+
+padding:8px 15px;
+border-radius:6px;
+text-decoration:none;
+font-size:14px;
+font-weight:bold;
+transition:0.2s;
+
+}
+
+.login-btn{
+
+border:1px solid #00f2ff;
+color:#00f2ff;
+
+}
+
+.login-btn:hover{
+
+background:#00f2ff;
+color:black;
+
+}
+
+.register-btn{
+
+background:#ff003c;
+color:white;
+
+}
+
+.register-btn:hover{
+
+background:#ff3366;
+
+}
+
+/* ======================= */
+/* SECTIONS */
+/* ======================= */
+
+section{
+
+margin-top:40px;
+
+}
+
+/* ======================= */
+/* LEADERBOARD */
+/* ======================= */
+
+#leaderboard{
+
+max-width:800px;
+margin:auto;
+
+}
+
+/* ======================= */
+/* TOURNOIS */
+/* ======================= */
+
+.tournament-section{
+
+margin-top:60px;
+
+}
+
+#tournaments{
+
+max-width:800px;
+margin:auto;
+
+}
+
+#tournaments .player{
+
+flex-direction:column;
+align-items:flex-start;
+gap:5px;
+
+border-left:4px solid #00f2ff;
+
+}
+
+#tournaments button{
+
+margin-top:5px;
+
+}
+
+/* ======================= */
+/* HOVER EFFECT CARDS */
+/* ======================= */
+
+.player{
+
+transition:0.2s;
+
+}
+
+.player:hover{
+
+transform:translateX(5px);
+
+}
+
+/* ======================= */
+/* PODIUM STYLE */
+/* ======================= */
+
+.podium-section{
+
+text-align:center;
+
+}
+
+#podium{
+
+margin-top:30px;
+
+}
+.leaderboard-section,
+.tournament-section,
+.podium-section{
+
+max-width:800px;
+margin:auto;
+
 }

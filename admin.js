@@ -1,19 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
-    getFirestore, 
-    collection, 
-    addDoc, 
-    getDocs,
-    updateDoc,
-    doc,
-    deleteDoc,
-    getDoc
+    getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { 
-    getAuth, 
-    signInWithEmailAndPassword,
-    onAuthStateChanged,
-    signOut
+    getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -36,12 +26,8 @@ const playersRef = collection(db,"players");
 document.getElementById("loginBtn").addEventListener("click", async ()=>{
     const email = document.getElementById("adminEmail").value;
     const password = document.getElementById("adminPassword").value;
-
-    try{
-        await signInWithEmailAndPassword(auth,email,password);
-    }catch(e){
-        alert("Erreur connexion : "+e.message);
-    }
+    try{ await signInWithEmailAndPassword(auth,email,password); }
+    catch(e){ alert("Erreur connexion : "+e.message); }
 });
 
 onAuthStateChanged(auth, async (user)=>{
@@ -53,6 +39,8 @@ onAuthStateChanged(auth, async (user)=>{
             document.getElementById("loginBox").style.display="none";
             document.getElementById("adminPanel").style.display="block";
             loadTournaments();
+            loadPlayers();
+            loadLeaderboard();
         }else{
             alert("Accès refusé : pas admin");
             signOut(auth);
@@ -63,7 +51,6 @@ onAuthStateChanged(auth, async (user)=>{
 // ================= CREATE TOURNAMENT =================
 document.getElementById("createTournament")
 .addEventListener("click", async ()=>{
-
     const title=document.getElementById("tTitle").value.trim();
     const date=document.getElementById("tDate").value;
     const maxPlayers=parseInt(document.getElementById("tMaxPlayers").value);
@@ -71,20 +58,10 @@ document.getElementById("createTournament")
     const prize=document.getElementById("tPrize").value.trim();
     const mode=document.getElementById("tMode").value.trim();
 
-    if(!title || !date || !maxPlayers){
-        alert("Champs obligatoires manquants");
-        return;
-    }
+    if(!title || !date || !maxPlayers){ alert("Champs obligatoires manquants"); return; }
 
     const docRef = await addDoc(tournamentsRef,{
-        title,
-        date,
-        maxPlayers,
-        description,
-        prize,
-        mode,
-        status:"open",
-        createdAt:new Date()
+        title, date, maxPlayers, description, prize, mode, status:"open", createdAt:new Date()
     });
 
     alert("Tournoi créé !");
@@ -96,108 +73,67 @@ document.getElementById("createTournament")
 async function createMatches(tournamentId){
     const participantsSnap = await getDocs(collection(db,"tournaments",tournamentId,"participants"));
     const participants = participantsSnap.docs.map(doc=>({id:doc.id, ...doc.data()}));
-    participants.sort(()=>Math.random()-0.5); // Mélange aléatoire
-
+    participants.sort(()=>Math.random()-0.5);
     const matchesRef = collection(db,"tournaments",tournamentId,"matches");
+
     for(let i=0; i<participants.length; i+=2){
         if(i+1 < participants.length){
-            await addDoc(matchesRef,{
-                player1Id: participants[i].playerId,
-                player2Id: participants[i+1].playerId,
-                score1: 0,
-                score2: 0,
-                winnerId: null
-            });
+            await addDoc(matchesRef,{player1Id: participants[i].playerId, player2Id: participants[i+1].playerId, score1:0, score2:0, winnerId:null});
         } else {
-            await addDoc(matchesRef,{
-                player1Id: participants[i].playerId,
-                player2Id: null,
-                score1: 0,
-                score2: 0,
-                winnerId: participants[i].playerId
-            });
+            await addDoc(matchesRef,{player1Id: participants[i].playerId, player2Id:null, score1:0, score2:0, winnerId:participants[i].playerId});
         }
     }
 }
 
-// ================= LOAD TOURNAMENTS =================
+// ================= LOAD TOURNOIS =================
 async function loadTournaments(){
-
     const div=document.getElementById("adminTournaments");
-    div.innerHTML="";
+    const finishedDiv=document.getElementById("finishedTournaments");
+    div.innerHTML=""; finishedDiv.innerHTML="";
 
     const snapshot=await getDocs(tournamentsRef);
 
-    snapshot.forEach(async (docSnap)=>{
-        const t=docSnap.data();
-        const tournamentId=docSnap.id;
+    snapshot.forEach(async docSnap=>{
+        const t=docSnap.data(); const id=docSnap.id;
+        const participantsSnap = await getDocs(collection(db,"tournaments",id,"participants"));
 
-        const participantsRef = collection(db,"tournaments",tournamentId,"participants");
-        const participantsSnap = await getDocs(participantsRef);
+        let htmlParticipants="";
+        participantsSnap.forEach((p,index)=> htmlParticipants += `<div>${index+1}. ${p.data().name} (${p.data().points} pts)</div>`);
 
-        let participantsHTML = "";
-        if(participantsSnap.empty){
-            participantsHTML = "<p>Aucun participant</p>";
-        }else{
-            participantsSnap.forEach((pDoc,index)=>{
-                const p = pDoc.data();
-                participantsHTML += `
-                    <div style="display:flex;justify-content:space-between;padding:4px 0;">
-                        <span>${index+1}. ${p.name} (${p.points} pts)</span>
-                        <button onclick="removeParticipant('${tournamentId}','${pDoc.id}')">❌</button>
-                    </div>
-                `;
-            });
-        }
+        const targetDiv = t.status==="finished"? finishedDiv : div;
 
-        div.innerHTML += `
-        <div class="player" style="flex-direction:column;align-items:flex-start;margin-bottom:25px;">
+        targetDiv.innerHTML += `
+        <div class="player" style="flex-direction:column;align-items:flex-start;margin-bottom:20px;">
             <h3>${t.title}</h3>
-            <small>Date : ${t.date}</small>
-            <p>Mode : ${t.mode || "N/A"}</p>
-            <p>Cashprize : ${t.prize || "N/A"}</p>
-            <p>Status : ${t.status}</p>
-            <p>Participants : ${participantsSnap.size}/${t.maxPlayers}</p>
-
+            <small>Date: ${t.date}</small>
+            <p>Mode: ${t.mode || "N/A"}</p>
+            <p>Cashprize: ${t.prize || "N/A"}</p>
+            <p>Status: ${t.status}</p>
+            <p>Participants: ${participantsSnap.size}/${t.maxPlayers}</p>
             <div style="margin:10px 0;">
-                <button onclick="toggleStatus('${tournamentId}','${t.status}')">Ouvrir / Fermer</button>
-                <button onclick="finishTournamentPro('${tournamentId}')">🏁 Terminer</button>
-                <button onclick="loadMatches('${tournamentId}')">Voir Matchs</button>
+                <button onclick="toggleStatus('${id}','${t.status}')">Ouvrir / Fermer</button>
+                <button onclick="finishTournamentPro('${id}')">🏁 Terminer</button>
+                <button onclick="loadMatches('${id}')">Voir Matchs</button>
             </div>
-
-            <div style="border-top:1px solid #00f2ff;padding-top:10px;">
-                <strong>Participants :</strong>
-                ${participantsHTML}
+            <div style="border-top:1px solid #00f2ff;padding-top:5px;">
+                ${htmlParticipants || "<p>Aucun participant</p>"}
             </div>
         </div>
         `;
     });
 }
 
-// ================= REMOVE PARTICIPANT =================
-window.removeParticipant = async function(tournamentId, participantId){
-    await deleteDoc(doc(db,"tournaments",tournamentId,"participants",participantId));
-    loadTournaments();
-};
-
-// ================= TOGGLE STATUS =================
-window.toggleStatus = async function(id,currentStatus){
-    let newStatus = currentStatus === "open" ? "closed" : "open";
-    await updateDoc(doc(db,"tournaments",id),{status:newStatus});
-    loadTournaments();
-};
-
 // ================= LOAD MATCHES =================
 async function loadMatches(tournamentId){
-    const matchesDiv = document.getElementById("matchesList");
-    matchesDiv.innerHTML = `<h3>Matchs du tournoi</h3>`;
+    const matchesDiv=document.getElementById("matchesList");
+    matchesDiv.innerHTML="<h3>Matchs / Bracket</h3>";
     const matchesSnap = await getDocs(collection(db,"tournaments",tournamentId,"matches"));
 
     matchesSnap.forEach(docSnap=>{
         const m = docSnap.data();
         matchesDiv.innerHTML += `
         <div class="player" style="flex-direction:column;margin-bottom:10px;">
-            <span>Match: ${m.player1Id} vs ${m.player2Id || "bye"}</span>
+            <span>${m.player1Id} vs ${m.player2Id || "bye"}</span>
             <input type="number" placeholder="Score ${m.player1Id}" id="score1-${docSnap.id}">
             <input type="number" placeholder="Score ${m.player2Id}" id="score2-${docSnap.id}">
             <button onclick="updateMatch('${tournamentId}','${docSnap.id}')">Valider</button>
@@ -206,39 +142,86 @@ async function loadMatches(tournamentId){
     });
 }
 
-// ================= UPDATE MATCH =================
-window.updateMatch = async function(tournamentId, matchId){
-    const s1 = parseInt(document.getElementById(`score1-${matchId}`).value);
-    const s2 = parseInt(document.getElementById(`score2-${matchId}`).value);
+// ================= LOAD PLAYERS =================
+async function loadPlayers(){
+    const div=document.getElementById("playersList"); div.innerHTML="";
+    const snapshot = await getDocs(playersRef);
 
-    const matchRef = doc(db,"tournaments",tournamentId,"matches",matchId);
-    let winnerId = null;
-    const mData = (await getDoc(matchRef)).data();
-    if(s1>s2) winnerId = mData.player1Id;
-    else if(s2>s1) winnerId = mData.player2Id;
+    snapshot.forEach(docSnap=>{
+        const p = docSnap.data();
+        div.innerHTML += `
+        <div class="player" style="flex-direction:column;align-items:flex-start;margin-bottom:10px;">
+            <strong>${p.name}</strong>
+            <span>Points: ${p.points} | Wins: ${p.wins} | Kills: ${p.kills} | Deaths: ${p.deaths}</span>
+            <div style="margin-top:5px;">
+                <button onclick="addPoints('${docSnap.id}',10)">+10 pts</button>
+                <button onclick="addWin('${docSnap.id}')">+1 Win</button>
+                <button onclick="resetStats('${docSnap.id}')">Reset</button>
+            </div>
+        </div>`;
+    });
+}
 
-    await updateDoc(matchRef,{score1: s1, score2: s2, winnerId});
+// ================= LOAD LEADERBOARD =================
+async function loadLeaderboard(){
+    const div=document.getElementById("leaderboardPanel"); div.innerHTML="";
+    const snapshot = await getDocs(playersRef);
+
+    let players = [];
+    snapshot.forEach(doc=>{
+        const data=doc.data();
+        const kd=(data.deaths?data.kills/data.deaths:0).toFixed(2);
+        const rankingScore=data.points + (data.wins*50) + (kd*20);
+        players.push({...data, id:doc.id, rankingScore, kd});
+    });
+
+    players.sort((a,b)=>b.rankingScore-a.rankingScore);
+    const top3 = players.slice(0,3);
+
+    top3.forEach((p,i)=>{
+        div.innerHTML += `<div class="podium-card ${["first","second","third"][i]}">
+            <h4>${p.name}</h4>
+            <p>${p.points} pts | K/D ${p.kd}</p>
+        </div>`;
+    });
+}
+
+// ================= PLAYER UTILITIES =================
+window.addPoints = async function(playerId, pts){
+    const ref = doc(db,"players",playerId); const snap=await getDoc(ref);
+    await updateDoc(ref,{points:(snap.data().points||0)+pts}); loadPlayers(); loadLeaderboard();
+};
+window.addWin = async function(playerId){
+    const ref = doc(db,"players",playerId); const snap=await getDoc(ref);
+    await updateDoc(ref,{wins:(snap.data().wins||0)+1}); loadPlayers(); loadLeaderboard();
+};
+window.resetStats = async function(playerId){
+    await updateDoc(doc(db,"players",playerId),{kills:0,deaths:1,wins:0}); loadPlayers(); loadLeaderboard();
 };
 
-// ================= FINISH TOURNAMENT PRO =================
+// ================= MATCH & TOURNAMENT UTILS =================
+window.updateMatch = async function(tournamentId, matchId){
+    const s1=parseInt(document.getElementById(`score1-${matchId}`).value);
+    const s2=parseInt(document.getElementById(`score2-${matchId}`).value);
+    const ref=doc(db,"tournaments",tournamentId,"matches",matchId);
+    const mData=(await getDoc(ref)).data();
+    let winner=null;
+    if(s1>s2) winner=mData.player1Id;
+    else if(s2>s1) winner=mData.player2Id;
+    await updateDoc(ref,{score1:s1,score2:s2,winnerId:winner});
+};
+window.toggleStatus=async function(id,status){ await updateDoc(doc(db,"tournaments",id),{status:status==="open"?"closed":"open"}); loadTournaments(); };
 async function finishTournamentPro(tournamentId){
     const participantsSnap = await getDocs(collection(db,"tournaments",tournamentId,"participants"));
     if(participantsSnap.empty){ alert("Aucun participant"); return; }
-
     let ranking = [...participantsSnap.docs].map(doc=>({id: doc.id, ...doc.data()}));
     ranking.sort((a,b)=> b.points - a.points);
-
-    const pointsDistribution = [100,50,25];
-
+    const pointsDist=[100,50,25];
     for(let i=0;i<ranking.length;i++){
         const pRef = doc(db,"players",ranking[i].playerId);
-        await updateDoc(pRef,{
-            points: ranking[i].points + (pointsDistribution[i] || 0),
-            wins: i===0 ? 1 : 0
-        });
+        await updateDoc(pRef,{points: ranking[i].points+(pointsDist[i]||0), wins: i===0?1:0});
     }
-
     await updateDoc(doc(db,"tournaments",tournamentId),{status:"finished"});
     alert("Tournoi terminé et points attribués !");
-    loadTournaments();
+    loadTournaments(); loadLeaderboard();
 }
