@@ -2,9 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { 
     getFirestore, 
     collection, 
-    addDoc, 
     onSnapshot, 
-    query, 
     getDocs 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -27,50 +25,31 @@ signInAnonymously(auth);
 const playersRef = collection(db,"players");
 const tournamentRef = collection(db,"tournaments");
 
-// =======================
-// AJOUT JOUEUR
-// =======================
-const addPlayer = async () => {
-    const name = document.getElementById("playerName").value.trim();
-    const points = parseInt(document.getElementById("playerPoints").value);
-
-    if(!name || isNaN(points)){
-        alert("Remplis correctement");
-        return;
-    }
-
-    await addDoc(playersRef,{
-        name:name,
-        points:points,
-        kills:0,
-        deaths:1,
-        wins:0
-    });
-
-    document.getElementById("playerName").value="";
-    document.getElementById("playerPoints").value="";
-};
-
-document.getElementById("addPlayerBtn")
-        .addEventListener("click",addPlayer);
 
 // =======================
 // CLASSEMENT INTELLIGENT
 // =======================
+
 onSnapshot(playersRef,(snapshot)=>{
+
     const leaderboard = document.getElementById("leaderboard");
     const podium = document.getElementById("podium");
+
     leaderboard.innerHTML="";
     podium.innerHTML="";
+
     let players=[];
 
     snapshot.forEach(doc=>{
         const data = doc.data();
+
         const kd = data.deaths ? data.kills/data.deaths : 0;
+
         const rankingScore =
             data.points +
             (data.wins * 50) +
             (kd * 20);
+
         players.push({
             id:doc.id,
             ...data,
@@ -79,11 +58,14 @@ onSnapshot(playersRef,(snapshot)=>{
     });
 
     players.sort((a,b)=> b.rankingScore - a.rankingScore);
+
     const top3 = players.slice(0,3);
     const classes=["first","second","third"];
 
     top3.forEach((p,i)=>{
+
         const kd=(p.kills/p.deaths).toFixed(2);
+
         podium.innerHTML+=`
         <div class="podium-card ${classes[i]}">
             <h3>${p.name}</h3>
@@ -93,39 +75,56 @@ onSnapshot(playersRef,(snapshot)=>{
     });
 
     players.forEach((p,index)=>{
+
         const kd=(p.kills/p.deaths).toFixed(2);
+
         leaderboard.innerHTML+=`
         <div class="player" onclick="window.location.href='profile.html?id=${p.id}'">
             <span>#${index+1} ${p.name}</span>
             <span>${p.points} pts | K/D ${kd}</span>
         </div>`;
     });
+
 });
+
 
 // =======================
 // TOURNOIS ADMIN PRO
 // =======================
+
 onSnapshot(tournamentRef,(snapshot)=>{
+
     const div=document.getElementById("tournaments");
     div.innerHTML="";
 
     snapshot.forEach(async (docSnap)=>{
+
         const t=docSnap.data();
         const tournamentId=docSnap.id;
+
         const participantsRef = collection(db,"tournaments",tournamentId,"participants");
+
         const participantsSnap = await getDocs(participantsRef);
+
         const count = participantsSnap.size;
+
         const isFull = t.maxPlayers && count >= t.maxPlayers;
 
         div.innerHTML+=`
         <div class="player" style="flex-direction:column;align-items:flex-start;">
+
             <strong>${t.title}</strong>
             <small>${t.date}</small>
+
             <p>${t.description || ""}</p>
+
             <p>Inscrits : ${count}${t.maxPlayers ? " / "+t.maxPlayers : ""}</p>
+
             <p>Status : ${t.status || "open"}</p>
 
-            ${t.status === "open" && !isFull ? 
+            ${
+            t.status === "open" && !isFull 
+            ?
             `<button onclick="register('${tournamentId}')">S'inscrire</button>`
             :
             `<button disabled>Complet / Fermé</button>`
@@ -134,40 +133,61 @@ onSnapshot(tournamentRef,(snapshot)=>{
             <button onclick="viewParticipants('${tournamentId}')">
                 Voir les inscrits
             </button>
+
         </div>`;
     });
+
 });
 
+
 // =======================
-// INSCRIPTION INTELLIGENTE
+// INSCRIPTION TOURNOI
 // =======================
-window.register=async function(id){
+
+window.register = async function(id){
+
     const playerName = prompt("Nom EXACT du joueur inscrit ?");
     if(!playerName) return;
 
     const snapshot = await getDocs(playersRef);
+
     let foundPlayer = null;
+
     snapshot.forEach(doc=>{
+
         if(doc.data().name === playerName){
-            foundPlayer = {id:doc.id,...doc.data()};
+
+            foundPlayer = {
+                id:doc.id,
+                ...doc.data()
+            };
         }
+
     });
 
     if(!foundPlayer){
+
         alert("Ce joueur n'existe pas !");
         return;
     }
 
     const participantsRef = collection(db,"tournaments",id,"participants");
+
     const existing = await getDocs(participantsRef);
+
     let already=false;
+
     existing.forEach(doc=>{
+
         if(doc.data().playerId === foundPlayer.id){
+
             already=true;
         }
+
     });
 
     if(already){
+
         alert("Déjà inscrit !");
         return;
     }
@@ -181,16 +201,26 @@ window.register=async function(id){
     alert("Inscription validée !");
 };
 
+
 // =======================
-// VUE ADMIN INSCRITS
+// VUE PARTICIPANTS
 // =======================
+
 window.viewParticipants = async function(id){
+
     const participantsRef = collection(db,"tournaments",id,"participants");
+
     const snapshot = await getDocs(participantsRef);
+
     let list="";
+
     snapshot.forEach(doc=>{
-        list+= doc.data().name + " ("+doc.data().points+" pts)\n";
+
+        list += doc.data().name + " ("+doc.data().points+" pts)\n";
+
     });
+
     if(!list) list="Aucun inscrit";
+
     alert("Liste des inscrits :\n\n"+list);
 };
