@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>🔐 Connexion Admin</h2>
+
+<div id="loginBox" class="addPlayer">
+    <input type="email" id="adminEmail" placeholder="Email">
+    <input type="password" id="adminPassword" placeholder="Mot de passe">
+    <button id="loginBtn">Connexion</button>
+</div>
+
+<div id="adminPanel" style="display:none;">
+
+    <h2>📢 Créer un Tournoi</h2>
+
+    <div class="addPlayer">
+        <input type="text" id="tTitle" placeholder="Titre du tournoi">
+        <input type="date" id="tDate">
+        <input type="number" id="tMaxPlayers" placeholder="Nombre max de joueurs">
+        <input type="text" id="tPrize" placeholder="Cashprize (ex: 500€)">
+        <input type="text" id="tMode" placeholder="Mode (BO3 / BO5)">
+        <input type="text" id="tDescription" placeholder="Description complète">
+        <button id="createTournament">Créer Tournoi</button>
+    </div>
+
+    <h2>🏆 Gestion des Tournois</h2>
+    <div id="adminTournaments"></div>
+
+    <h2>🎮 Gestion des Matchs</h2>
+    <div id="matchesList"></div>
+
+</div>
+
+<script type="module" src="admin.js"></script>
+</body>
+</html>
