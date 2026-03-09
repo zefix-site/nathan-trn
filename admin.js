@@ -169,9 +169,12 @@ function loadPlayersRealtime(){
             div.innerHTML += `
                 <div class="player" style="flex-direction:column;align-items:flex-start;margin-bottom:10px;">
                     <strong>${p.name}</strong>
-                    <span>Points: ${p.points} | Wins: ${p.wins} | Kills: ${p.kills} | Deaths: ${p.deaths}</span>
+                    <span>Points: ${p.points} | Wins: ${p.wins} | Kills: ${p.kills} | Deaths: ${p.deaths} </span>
                     <div style="margin-top:5px;">
                         <button onclick="addPoints('${docSnap.id}',10)">+10 pts</button>
+                        <button onclick="addPoints('${docSnap.id}',5)">+5 pts</button>
+                        <button onclick="addPoints('${docSnap.id}',1)">+1 pts</button>
+                        <button onclick="addKill('${docSnap.id}',1)">+1 Kill</button>
                         <button onclick="addWin('${docSnap.id}')">+1 Win</button>
                         <button onclick="resetStats('${docSnap.id}')">Reset</button>
                     </div>
@@ -187,21 +190,25 @@ function loadLeaderboardRealtime(){
     onSnapshot(playersRef, snapshot => {
         div.innerHTML = "";
         let players = [];
-        snapshot.forEach(doc=>{
+        
+        snapshot.forEach(doc => {
             const data = doc.data();
-            const kd = (data.deaths ? data.kills/data.deaths : 0).toFixed(2);
-            const rankingScore = data.points + (data.wins*50) + (kd*20);
-            players.push({...data, id: doc.id, rankingScore, kd});
+            const kd = (data.deaths ? data.kills / data.deaths : 0).toFixed(2);
+            const rankingScore = data.points + (data.wins * 50) + (kd * 20);
+            players.push({ ...data, id: doc.id, rankingScore, kd });
         });
-        players.sort((a,b)=> b.rankingScore - a.rankingScore);
-        players.forEach((p,index)=>{
+
+        // Tri par score
+        players.sort((a, b) => b.rankingScore - a.rankingScore);
+
+        players.forEach((p, index) => {
             div.innerHTML += `
-                <div class="player-card leaderboard-card">
+                <div class="player-card leaderboard-card" style="margin-bottom:10px; padding:8px; border:1px solid #00f2ff; border-radius:6px;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <strong>#${index+1} ${p.name}</strong>
-                        <span>${p.rankingScore.toFixed(0)} pts</span>
+                        <strong>#${index + 1} ${p.name}</strong>
+                        <span>Score: ${p.rankingScore.toFixed(0)} pts</span>
                     </div>
-                    <div style="display:flex; gap:10px; font-size:13px; color:#aaa;">
+                    <div style="display:flex; gap:10px; font-size:13px; color:#aaa; margin-top:4px;">
                         <span>Points: ${p.points}</span>
                         <span>Wins: ${p.wins}</span>
                         <span>Kills: ${p.kills}</span>
@@ -209,9 +216,13 @@ function loadLeaderboardRealtime(){
                         <span>K/D: ${p.kd}</span>
                     </div>
                     <div style="margin-top:5px;">
-                        <button onclick="addPoints('${p.id}',10)">+10 pts</button>
+                    <button onclick="addPoints('${p.id}',10)">+10 pts</button>
+                        <button onclick="addPoints('${p.id}',5)">+5 pts</button>
+                        <button onclick="addPoints('${p.id}',1)">+1 pt</button>
                         <button onclick="addWin('${p.id}')">+1 Win</button>
-                        <button onclick="resetStats('${p.id}')">Reset</button>
+                        <button onclick="addKill('${p.id}',1)">+1 Kill</button>
+                        <button onclick="addDeath('${p.id}',1)">+1 Death</button>
+                        <button onclick="resetStats('${p.id}')">Reset Stats</button>
                     </div>
                 </div>
             `;
@@ -231,7 +242,12 @@ window.addWin = async function(playerId){
     await updateDoc(ref,{wins:(snap.data().wins||0)+1});
 };
 window.resetStats = async function(playerId){
-    await updateDoc(doc(db,"players",playerId),{kills:0,deaths:1,wins:0});
+    await updateDoc(doc(db,"players",playerId),{
+        points: 0,
+        wins: 0,
+        kills: 0,
+        deaths: 0
+    });
 };
 
 // ================= MATCH & TOURNAMENT UTILS =================
@@ -305,3 +321,14 @@ window.deleteTournament = async function(tournamentId){
     }
 
 }
+window.addKill = async function(playerId, num){
+    const ref = doc(db, "players", playerId);
+    const snap = await getDoc(ref);
+    await updateDoc(ref, { kills: (snap.data().kills || 0) + num });
+};
+
+window.addDeath = async function(playerId, num){
+    const ref = doc(db, "players", playerId);
+    const snap = await getDoc(ref);
+    await updateDoc(ref, { deaths: (snap.data().deaths || 0) + num });
+};

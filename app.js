@@ -4,11 +4,14 @@ import {
     collection, 
     onSnapshot, 
     getDocs, 
-    addDoc,   // <-- nécessaire
-    doc       // <-- nécessaire si tu supprimes des participants
+    addDoc,  
+    doc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+// =======================
+// INITIALISATION FIREBASE
+// =======================
 const firebaseConfig = {
   apiKey: "AIzaSyBHLFJroGx5EX9-M8Ps14eC0z3OZI_eZg8",
   authDomain: "nathan-trn.firebaseapp.com",
@@ -27,11 +30,42 @@ signInAnonymously(auth);
 const playersRef = collection(db,"players");
 const tournamentRef = collection(db,"tournaments");
 
+// =======================
+// REDIRECTION PROFIL JOUEUR
+// =======================
+const profileBtn = document.getElementById("player-profile");
+
+profileBtn.addEventListener("click", async () => {
+    const user = auth.currentUser;
+
+    if(!user){
+        alert("Vous devez être connecté !");
+        return;
+    }
+
+    // Cherche le joueur correspondant à l'UID
+    const snapshot = await getDocs(playersRef);
+    let foundPlayer = null;
+
+    snapshot.forEach(doc => {
+        const data = doc.data();
+        if(data.uid === user.uid){  // Assurez-vous que chaque joueur a le champ uid
+            foundPlayer = { id: doc.id, ...data };
+        }
+    });
+
+    if(!foundPlayer){
+        alert("Profil introuvable !");
+        return;
+    }
+
+    // Redirection vers la page profil
+    window.location.href = `profile.html?id=${foundPlayer.id}`;
+});
 
 // =======================
 // CLASSEMENT INTELLIGENT
 // =======================
-
 onSnapshot(playersRef,(snapshot)=>{
 
     const leaderboard = document.getElementById("leaderboard");
@@ -44,7 +78,6 @@ onSnapshot(playersRef,(snapshot)=>{
 
     snapshot.forEach(doc=>{
         const data = doc.data();
-
         const kd = data.deaths ? data.kills/data.deaths : 0;
 
         const rankingScore =
@@ -65,7 +98,6 @@ onSnapshot(playersRef,(snapshot)=>{
     const classes=["first","second","third"];
 
     top3.forEach((p,i)=>{
-
         const kd=(p.kills/p.deaths).toFixed(2);
 
         podium.innerHTML+=`
@@ -77,7 +109,6 @@ onSnapshot(playersRef,(snapshot)=>{
     });
 
     players.forEach((p,index)=>{
-
         const kd=(p.kills/p.deaths).toFixed(2);
 
         leaderboard.innerHTML+=`
@@ -89,11 +120,9 @@ onSnapshot(playersRef,(snapshot)=>{
 
 });
 
-
 // =======================
 // TOURNOIS ADMIN PRO
 // =======================
-
 onSnapshot(tournamentRef, (snapshot) => {
     const div = document.getElementById("tournaments");
     div.innerHTML = "";
@@ -102,7 +131,6 @@ onSnapshot(tournamentRef, (snapshot) => {
         const t = docSnap.data();
         const tournamentId = docSnap.id;
 
-        // Div du tournoi
         const tournamentDiv = document.createElement("div");
         tournamentDiv.className = "player";
         tournamentDiv.style.flexDirection = "column";
@@ -119,7 +147,6 @@ onSnapshot(tournamentRef, (snapshot) => {
             <button onclick="viewParticipants('${tournamentId}')">Voir les inscrits</button>
         `;
 
-        // ✅ Snapshot sur les participants pour chaque tournoi
         const participantsRef = collection(db, "tournaments", tournamentId, "participants");
         onSnapshot(participantsRef, (participantsSnap) => {
             const count = participantsSnap.size;
@@ -129,57 +156,39 @@ onSnapshot(tournamentRef, (snapshot) => {
     });
 });
 
-
-
-
 // =======================
 // INSCRIPTION TOURNOI
 // =======================
-
 window.register = async function(id){
 
     const playerName = prompt("Nom EXACT du joueur inscrit ?");
     if(!playerName) return;
 
     const snapshot = await getDocs(playersRef);
-
     let foundPlayer = null;
 
     snapshot.forEach(doc=>{
-
         if(doc.data().name === playerName){
-
-            foundPlayer = {
-                id:doc.id,
-                ...doc.data()
-            };
+            foundPlayer = { id:doc.id, ...doc.data() };
         }
-
     });
 
     if(!foundPlayer){
-
         alert("Ce joueur n'existe pas !");
         return;
     }
 
     const participantsRef = collection(db,"tournaments",id,"participants");
-
     const existing = await getDocs(participantsRef);
-
     let already=false;
 
     existing.forEach(doc=>{
-
         if(doc.data().playerId === foundPlayer.id){
-
             already=true;
         }
-
     });
 
     if(already){
-
         alert("Déjà inscrit !");
         return;
     }
@@ -193,23 +202,17 @@ window.register = async function(id){
     alert("Inscription validée !");
 };
 
-
 // =======================
 // VUE PARTICIPANTS
 // =======================
-
 window.viewParticipants = async function(id){
 
     const participantsRef = collection(db,"tournaments",id,"participants");
-
     const snapshot = await getDocs(participantsRef);
-
     let list="";
 
     snapshot.forEach(doc=>{
-
         list += doc.data().name + " ("+doc.data().points+" pts)\n";
-
     });
 
     if(!list) list="Aucun inscrit";

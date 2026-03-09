@@ -16,66 +16,57 @@ const db = getFirestore(app);
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
-const playerRef = doc(db,"players",id);
-const snap = await getDoc(playerRef);
+if(!id){
+    document.getElementById("profile").innerHTML = "<p>Joueur introuvable.</p>";
+} else {
+    const playerRef = doc(db,"players",id);
+    const snap = await getDoc(playerRef);
 
-if(snap.exists()){
+    if(snap.exists()){
+        const p = snap.data();
 
-    const p = snap.data();
+        // Sécuriser les valeurs si elles sont undefined
+        const kills = p.kills || 0;
+        const deaths = p.deaths || 1; // éviter division par 0
+        const points = p.points || 0;
+        const wins = p.wins || 0;
 
-    const kd = (p.kills / p.deaths).toFixed(2);
+        const kd = (kills / deaths).toFixed(2);
 
-    let kdColor = "#00ff9d";
+        let kdColor = "#00ff9d";
+        if(kd < 1) kdColor = "#ff3b3b";
+        else if(kd < 2) kdColor = "#ffaa00";
 
-    if(kd < 1) kdColor = "#ff3b3b";
-    if(kd >= 1 && kd < 2) kdColor = "#ffaa00";
-    if(kd >= 2) kdColor = "#00ff9d";
-
-    document.getElementById("profile").innerHTML = `
-
+        document.getElementById("profile").innerHTML = `
 <div class="profile-card">
-
-<div class="profile-header">
-
-<div class="profile-avatar">
-🎮
-</div>
-
-<h3 class="profile-name">${p.name}</h3>
-
-</div>
-
-<div class="profile-stats">
-
-<div class="stat-box">
-<span class="stat-title">POINTS</span>
-<span class="stat-value">${p.points}</span>
-</div>
-
-<div class="stat-box">
-<span class="stat-title">KILLS</span>
-<span class="stat-value">${p.kills}</span>
-</div>
-
-<div class="stat-box">
-<span class="stat-title">DEATHS</span>
-<span class="stat-value">${p.deaths}</span>
-</div>
-
-<div class="stat-box">
-<span class="stat-title">VICTOIRES</span>
-<span class="stat-value">${p.wins}</span>
-</div>
-
-<div class="stat-box kd">
-<span class="stat-title">K/D</span>
-<span class="stat-value" style="color:${kdColor}">${kd}</span>
-</div>
-
-</div>
-
-</div>
-
-`;
-
+    <div class="profile-header">
+        <div class="profile-avatar">🎮</div>
+        <h3 class="profile-name">${p.name}</h3>
+    </div>
+    <div class="profile-stats">
+        <div class="stat-box">
+            <span class="stat-title">POINTS</span>
+            <span class="stat-value">${points}</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-title">KILLS</span>
+            <span class="stat-value">${kills}</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-title">DEATHS</span>
+            <span class="stat-value">${deaths}</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-title">VICTOIRES</span>
+            <span class="stat-value">${wins}</span>
+        </div>
+        <div class="stat-box kd">
+            <span class="stat-title">K/D</span>
+            <span class="stat-value" style="color:${kdColor}">${kd}</span>
+        </div>
+    </div>
+</div>`;
+    } else {
+        document.getElementById("profile").innerHTML = "<p>Joueur introuvable.</p>";
+    }
 }
