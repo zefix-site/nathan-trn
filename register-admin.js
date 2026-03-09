@@ -1,47 +1,47 @@
-window.register = async function(id){
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    const playerName = prompt("Nom EXACT du joueur inscrit ?");
-    if(!playerName) return;
-
-    const snapshot = await getDocs(playersRef);
-
-    let foundPlayer = null;
-
-    snapshot.forEach(doc=>{
-        const dbName = doc.data().name.trim().toLowerCase();
-        const inputName = playerName.trim().toLowerCase();
-
-        if(dbName === inputName){
-            foundPlayer = {id:doc.id,...doc.data()};
-        }
-    });
-
-    if(!foundPlayer){
-        alert("Ce joueur n'existe pas !");
-        return;
-    }
-
-    const participantsRef = collection(db,"tournaments",id,"participants");
-    const existing = await getDocs(participantsRef);
-
-    let already=false;
-
-    existing.forEach(doc=>{
-        if(doc.data().playerId === foundPlayer.id){
-            already=true;
-        }
-    });
-
-    if(already){
-        alert("Déjà inscrit !");
-        return;
-    }
-
-    await addDoc(participantsRef,{
-        playerId:foundPlayer.id,
-        name:foundPlayer.name,
-        points:foundPlayer.points
-    });
-
-    alert("Inscription validée !");
+const firebaseConfig = {
+  apiKey: "AIzaSyBHLFJroGx5EX9-M8Ps14eC0z3OZI_eZg8",
+  authDomain: "nathan-trn.firebaseapp.com",
+  projectId: "nathan-trn",
+  storageBucket: "nathan-trn.firebasestorage.app",
+  messagingSenderId: "24707035797",
+  appId: "1:24707035797:web:34aef38b6cc8d76c17a19c"
 };
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+document.getElementById("createAdminBtn").addEventListener("click", async ()=>{
+
+    const email = document.getElementById("adminEmail").value;
+    const password = document.getElementById("adminPassword").value;
+
+    if(!email || !password){
+        alert("Remplis tous les champs");
+        return;
+    }
+
+    try{
+
+        const userCredential = await createUserWithEmailAndPassword(auth,email,password);
+
+        const uid = userCredential.user.uid;
+
+        await setDoc(doc(db,"admins",uid),{
+            email:email,
+            role:"admin",
+            createdAt:new Date()
+        });
+
+        document.getElementById("status").innerText = "✅ Admin créé avec succès";
+
+    }catch(e){
+        console.error(e);
+        alert("Erreur : "+e.message);
+    }
+
+});
