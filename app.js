@@ -3,7 +3,9 @@ import {
     getFirestore, 
     collection, 
     onSnapshot, 
-    getDocs 
+    getDocs, 
+    addDoc,   // <-- nécessaire
+    doc       // <-- nécessaire si tu supprimes des participants
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -92,52 +94,42 @@ onSnapshot(playersRef,(snapshot)=>{
 // TOURNOIS ADMIN PRO
 // =======================
 
-onSnapshot(tournamentRef,(snapshot)=>{
+onSnapshot(tournamentRef, (snapshot) => {
+    const div = document.getElementById("tournaments");
+    div.innerHTML = "";
 
-    const div=document.getElementById("tournaments");
-    div.innerHTML="";
+    snapshot.forEach(docSnap => {
+        const t = docSnap.data();
+        const tournamentId = docSnap.id;
 
-    snapshot.forEach(async (docSnap)=>{
+        // Div du tournoi
+        const tournamentDiv = document.createElement("div");
+        tournamentDiv.className = "player";
+        tournamentDiv.style.flexDirection = "column";
+        tournamentDiv.style.alignItems = "flex-start";
+        div.appendChild(tournamentDiv);
 
-        const t=docSnap.data();
-        const tournamentId=docSnap.id;
-
-        const participantsRef = collection(db,"tournaments",tournamentId,"participants");
-
-        const participantsSnap = await getDocs(participantsRef);
-
-        const count = participantsSnap.size;
-
-        const isFull = t.maxPlayers && count >= t.maxPlayers;
-
-        div.innerHTML+=`
-        <div class="player" style="flex-direction:column;align-items:flex-start;">
-
+        tournamentDiv.innerHTML = `
             <strong>${t.title}</strong>
             <small>${t.date}</small>
-
             <p>${t.description || ""}</p>
-
-            <p>Inscrits : ${count}${t.maxPlayers ? " / "+t.maxPlayers : ""}</p>
-
+            <p id="inscrits-${tournamentId}">Inscrits : 0${t.maxPlayers ? " / " + t.maxPlayers : ""}</p>
             <p>Status : ${t.status || "open"}</p>
+            ${t.status === "open" ? `<button onclick="register('${tournamentId}')">S'inscrire</button>` : `<button disabled>Complet / Fermé</button>`}
+            <button onclick="viewParticipants('${tournamentId}')">Voir les inscrits</button>
+        `;
 
-            ${
-            t.status === "open" && !isFull 
-            ?
-            `<button onclick="register('${tournamentId}')">S'inscrire</button>`
-            :
-            `<button disabled>Complet / Fermé</button>`
-            }
-
-            <button onclick="viewParticipants('${tournamentId}')">
-                Voir les inscrits
-            </button>
-
-        </div>`;
+        // ✅ Snapshot sur les participants pour chaque tournoi
+        const participantsRef = collection(db, "tournaments", tournamentId, "participants");
+        onSnapshot(participantsRef, (participantsSnap) => {
+            const count = participantsSnap.size;
+            document.getElementById(`inscrits-${tournamentId}`).innerText =
+                `Inscrits : ${count}${t.maxPlayers ? " / " + t.maxPlayers : ""}`;
+        });
     });
-
 });
+
+
 
 
 // =======================

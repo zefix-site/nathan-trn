@@ -1,5 +1,12 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    getDocs, 
+    query, 
+    where 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const firebaseConfig = {
@@ -26,6 +33,14 @@ document.getElementById("registerBtn").addEventListener("click", async () => {
     }
 
     try {
+        // 🔹 Vérifier si le pseudo existe déjà
+        const q = query(collection(db, "players"), where("name", "==", username));
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+            alert("Ce pseudo est déjà utilisé !");
+            return;
+        }
+
         // Crée le compte Firebase Auth
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
