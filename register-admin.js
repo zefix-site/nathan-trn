@@ -3,12 +3,13 @@ import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com
 import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBHLFJroGx5EX9-M8Ps14eC0z3OZI_eZg8",
-  authDomain: "nathan-trn.firebaseapp.com",
-  projectId: "nathan-trn",
-  storageBucket: "nathan-trn.firebasestorage.app",
-  messagingSenderId: "24707035797",
-  appId: "1:24707035797:web:34aef38b6cc8d76c17a19c"
+  apiKey: "AIzaSyBCUs-Db9FS0zir4pb3RmU8_ThCuztv1p8",
+  authDomain: "admin-nathan-trn.firebaseapp.com",
+  projectId: "admin-nathan-trn",
+  storageBucket: "admin-nathan-trn.firebasestorage.app",
+  messagingSenderId: "287443505609",
+  appId: "1:287443505609:web:1a02dd4a415d291c5c9818",
+  measurementId: "G-QD1MY5VCRL"
 };
 
 const app = initializeApp(firebaseConfig);
